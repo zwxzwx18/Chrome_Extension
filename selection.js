@@ -5,7 +5,7 @@
     sendResponse({}); // snub them.
 });*/
 
-var mouse=0;//鼠标的状态
+var mouse=0;//mouse state
 var mx=new Array(), my=new Array();
 var N=0;
 var t;
@@ -41,13 +41,75 @@ clearTimeout(t);
 mousex=0; mousey=0;
 var d=document.getElementById("canvas");
 if(d!=null) d.parentNode.removeChild(d);
-/*var i;
-var m=document.getElementById('text');
-m.value=m.value+N;
-for(i=0; i<N; i++)
-{m.value=m.value+mx[i]+" ";
-m.value=m.value+my[i]+" ";}*/
+
+var i, j;
+    for(i=0; i<N-1; i++)//eliminate the close points
+    {
+        if(mx[i]==0&&mx[i+1]==0) break;
+        if((my[i+1]-my[i])*(my[i+1]-my[i])+(mx[i+1]-mx[i])*(mx[i+1]-mx[i])<=10)
+        {
+            for(j=i+1; j<N; j++)
+            {
+                mx[j]=mx[j+1];
+                my[j]=my[j+1];
+            }
+            N--;
+        }
+    }
+	var previous0=new Array();
+	var previous1=new Array();
+	for (i=0;i<N-1;i++)
+	  previous0[i]=0;
+	previous0[0]=0;
+    var count=1;
+    var flag=0;
+    var k, tmp;
+    for(i=0; i<N-1; i++)
+    {
+        k=(my[i+1]-my[i])/(mx[i+1]-mx[i]);
+        tmp=Math.atan(k);
+        j=count-1;
+        flag=0;
+		if(j>0 && Math.abs(tmp-previous0[j])<0.3018)
+        {
+            previous0[j]=(previous0[j]*previous1[j]+tmp)/(previous1[j]+1);
+            previous1[j]=previous1[j]+1;
+            flag=1;
+            //sendResponse({data: "888"});
+        }
+        else 
+        {if(previous0[j] && Math.abs(tmp-previous0[j])<0.3018)
+        {
+            previous0[j]=(previous0[j]*previous1[j]+tmp)/(previous1[j]+1);
+            previous1[j]=previous1[j]+1;
+            //sendResponse({data: "888"});
+            flag=1;
+            //break;
+        }}
+        if(flag==0)
+        {
+            previous1[count]=1;
+            previous0[count]=tmp;
+            count=count+1;
+        }
+    }
+    tmp=count;
+    for(i=1;i<tmp;i++)
+    {
+        if(previous1[i]<3) //sendResponse({data: i});
+        count=count-1;
+    }
+	count=count-1;
+	//if(count=='3') sendResponse({data: count});
+    if(count=='3') {history.go(1);sendResponse({data: "triangle"});}
+    else
+    {if(count=='4') {
+    sendResponse({data: "rectangular"});}//need some function for rectangular
+    else {if(count=='2') {history.go(-1);sendResponse({data: "L"});}
+    else {if(count=='1') {history.go(0);sendResponse({data: "line"});}
+	}}}
 }}
+
 
 function mousemove(){
 mousex=event.clientX;
@@ -87,11 +149,6 @@ window.onmousedown=function(event) {
 window.onmouseup=mouseup;
 window.onmousemove=mousemove;
 
-/*function exhibit(request, sender, sendResponse) {
-  //window.onmousedown=mousedown;
-  //window.onmouseup=mouseup;
-  setInterval(function re(request, sender, sendResponse){sendResponse({data: -1, arrayx: x, arrayy: y});}, 5000);
-}*/
 function exhibit(request, sender, sendResponse) {
     var i, j;
     for(i=0; i<N-1; i++)//eliminate the close points
@@ -127,14 +184,12 @@ function exhibit(request, sender, sendResponse) {
             previous0[j]=(previous0[j]*previous1[j]+tmp)/(previous1[j]+1);
             previous1[j]=previous1[j]+1;
             flag=1;
-            //sendResponse({data: "888"});
         }
         else 
         {if(previous0[j] && Math.abs(tmp-previous0[j])<0.3018)
         {
             previous0[j]=(previous0[j]*previous1[j]+tmp)/(previous1[j]+1);
             previous1[j]=previous1[j]+1;
-            //sendResponse({data: "888"});
             flag=1;
             //break;
         }}
@@ -165,22 +220,11 @@ function exhibit(request, sender, sendResponse) {
     sendResponse({data: "rectangular"});}//need some function for rectangular
     else {if(count=='2') {history.go(-1);sendResponse({data: "L"});}
     else {if(count=='1') {history.go(0);sendResponse({data: "line"});}
-        //sendResponse({data: "L"});
-        /*sendResponse({data: "fuck"});
-        if(Math.abs(previous0[0])>=0.275 && Math.abs(previous0[1])>=0.275)
-            sendResponse({data: "right"});
-        else
-        {
-            if((Math.abs(previous0[1])<=0.275 && previous0[0]>0.275) || (Math.abs(previous0[0])<=0.275 && previous0[1]>0.275))
-                sendResponse({data: "L"});
-            else
-                sendResponse({data: "anti-L"});
-        }*/
 	else 
 	  sendResponse({data: count});}}}
 }
 
-chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {//for debug mode, since it will show if it recognized correctly
   if (request.method == "getSelection")
     sendResponse({data: window.getSelection().toString()});
   else {if(request.word=="")
@@ -193,7 +237,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 	var i;
 	//for (i=0; i<m.length; i++)
 	//{m[i].style.color="red";}
-	var m=document.body.innerText;//获得body内的所有文字内容，而innerHTML是包括<p>, <div>等的所有内容，还应该加入head的搜索
+	var m=document.body.innerText;//get the words in body，innerHTML included <p>, <div>
 	//m=m.toString();
 	//m.style.color="red";
 	var text=window.getSelection().toString();
