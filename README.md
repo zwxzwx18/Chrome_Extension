@@ -10,4 +10,6 @@ L: Go back
 Triangle: Go forward
 Rectangular: Have not defined yet
 
+Also, some part of code is about find the number of specific strings in the webpage, if you enter something in the first blank of the popup window and click find word, it will return how many times the word appear in the webpage.
+
 Thanks ^_^
