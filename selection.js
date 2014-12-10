@@ -8,6 +8,30 @@
 var mouse=0;//mouse state
 var mx=new Array(), my=new Array();
 var N=0;
+var ff=getCookie("ff");
+function setCookie(name,value) 
+{ 
+    var Days = 30; 
+    var exp = new Date(); 
+    exp.setTime(exp.getTime() + Days*24*60*60*1000); 
+    document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString(); 
+} 
+function getCookie(name) 
+{ 
+    var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+    if(arr=document.cookie.match(reg))
+        return unescape(arr[2]); 
+    else 
+        return 0; 
+}
+function delCookie(name) 
+{ 
+    var exp = new Date(); 
+    exp.setTime(exp.getTime() - 1); 
+    var cval=getCookie(name); 
+    if(cval!=null) 
+        document.cookie= name + "="+cval+";expires="+exp.toGMTString(); 
+} 
 var t;
 //var k;
 var mousex=0, mousey=0;
@@ -41,7 +65,8 @@ clearTimeout(t);
 mousex=0; mousey=0;
 var d=document.getElementById("canvas");
 if(d!=null) d.parentNode.removeChild(d);
-
+ff=getCookie("ff");
+if(ff==0){
 var i, j;
     for(i=0; i<N-1; i++)//eliminate the close points
     {
@@ -108,7 +133,7 @@ var i, j;
     else {if(count=='2') {history.go(-1);sendResponse({data: "L"});}
     else {if(count=='1') {history.go(0);sendResponse({data: "line"});}
 	}}}
-}}
+}}}
 
 
 function mousemove(){
@@ -129,10 +154,10 @@ window.onmousedown=function(event) {
   d.width=window.innerWidth;
   d.height=window.innerHeight;
   d.style.visibility="visible";
-  d.style.position="absolute";
+  d.style.position="fixed";//change here
   d.style.top=0 + "px";
   d.style.left=0 + "px";
-  d.style.zIndex=0;
+  d.style.zIndex=1000;//change here
   document.body.appendChild(d);
   //var context=d.getContext("2d");
   //context.strokeStyle="#df4b26";
@@ -225,6 +250,8 @@ function exhibit(request, sender, sendResponse) {
 }
 
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {//for debug mode, since it will show if it recognized correctly
+  if (request.method == "debug") {delCookie("ff");setCookie("ff",1);}//after we go to different website, it still remain the same
+  if (request.method == "user") {delCookie("ff");setCookie("ff",0);}
   if (request.method == "getSelection")
     sendResponse({data: window.getSelection().toString()});
   else {if(request.word=="")
